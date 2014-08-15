@@ -1,5 +1,6 @@
 import nltk
 import random
+from nltk.corpus import wordnet as wn
 
 poem = [
 "You fill the room with sweet sensation",
@@ -15,7 +16,15 @@ def unconjugate(word):
 	return word #TODO
 
 def find_synonyms(word):
-	return [word] #TODO
+	synonyms = []
+	syn_sets = wn.synsets(word)
+	for syn_set in syn_sets:
+		synonyms = synonyms + syn_set.lemma_names
+	synonyms = [s for s in synonyms if s != word]
+	if len(synonyms) > 0:
+		return synonyms
+	else:
+		return [word]
 
 def reconjugate(word):
 	return word #TODO
@@ -81,5 +90,10 @@ for i in range(0, len(synonymous_lines)):
 	else:
 		synonymous_lines[i] = random.choice(all_possible_sentences)
 
+print "ORIGINAL POEM"
+for line in poem:
+	print line
+
+print "\nSYNONYMOUS POEM"
 for line in synonymous_lines:
 	print line
