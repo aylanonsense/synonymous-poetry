@@ -1,6 +1,15 @@
 import nltk
 import random
 from nltk.corpus import wordnet as wn
+from nltk.corpus import stopwords
+from collections import defaultdict
+stopwords = stopwords.words('english')
+lemmatizer = nltk.WordNetLemmatizer()
+stemmer = nltk.stem.porter.PorterStemmer()
+rhyme_entries = nltk.corpus.cmudict.entries()
+syllable_guide = defaultdict( lambda: 1 )
+for word, pronunciations in rhyme_entries:
+	syllable_guide[word] = len([x for x in pronunciations if x[-1].isdigit() ])
 
 poem = [
 "You fill the room with sweet sensation",
@@ -10,17 +19,20 @@ poem = [
 ]
 
 def is_common(word):
-	return False #TODO
+	return word in stopwords
 
 def unconjugate(word):
-	return word #TODO
+	word = word.lower()
+	word = stemmer.stem_word(word)
+	word = lemmatizer.lemmatize(word)
+	return word
 
 def find_synonyms(word):
 	synonyms = []
 	syn_sets = wn.synsets(word)
 	for syn_set in syn_sets:
 		synonyms = synonyms + syn_set.lemma_names
-	synonyms = [s for s in synonyms if s != word]
+	synonyms = [s.replace("_", " ") for s in synonyms if s != word]
 	if len(synonyms) > 0:
 		return synonyms
 	else:
@@ -36,7 +48,8 @@ def find_rhyme(word, rhymes):
 	return rhymes[0] #TODO
 
 def num_syllables(sentence):
-	return 0 #TODO
+	tokens = nltk.word_tokenize(sentence) 
+	return sum( [ syllable_guide[word.lower()] for word in tokens ] )
 
 def every_combination(choices):
 	if len(choices) == 0:
@@ -62,7 +75,7 @@ for line in poem:
 			cleaned_word = unconjugate(word)
 			synonyms = [reconjugate(x) for x in find_synonyms(cleaned_word)]
 		else:
-			synonyms = []
+			synonyms = [word]
 		synonymous_line.append(synonyms)
 	synonymous_lines.append(synonymous_line)
 
@@ -92,8 +105,8 @@ for i in range(0, len(synonymous_lines)):
 
 print "ORIGINAL POEM"
 for line in poem:
-	print line
+	print str(num_syllables(line)), '\t', line
 
 print "\nSYNONYMOUS POEM"
 for line in synonymous_lines:
-	print line
+	print str(num_syllables(line)), '\t', line
